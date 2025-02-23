@@ -4,9 +4,13 @@
  🚀 Reinforcement Learning Repository is a continuously expanding collection of RL algorithms, implemented from various resources, including research papers, books, and courses. The repo serves as a structured, modular, and well-documented foundation for both learning and applying RL techniques.
 
 What This Repo Includes:
+
 ✔️ Comprehensive RL Coverage – From Bandit Problems and Dynamic Programming to Deep RL (DQN, PPO, SAC) and beyond.
+
 ✔️ Mathematical Insights – Clear derivations and explanations for each algorithm.
+
 ✔️ Scalability & Reusability – Designed for easy modification and integration into larger projects.
+
 ✔️ Performance Benchmarks – Visual comparisons of different strategies using simulations and real-world applications.
 
 Why This Repo?
