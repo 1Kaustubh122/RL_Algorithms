@@ -1,12 +1,19 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+
+os.makedirs("Bandit_Algorithms/Results", exist_ok=True)
+
 
 '''
 This is a simple implementation of K-Armed Bandit Problem
 
-Greedy Estimate vs Upper-Confidence-Bound (UCB)
+Upper-Confidence-Bound (UCB) vs Decaying Greedy Epsilon vs Epsilon-Greedy Selection
 
 These are two types of action selection in RL
+
+Drawbacks of UCB: Its smart but, assume the rewards for each arm wont chang over time.
+For Non stationary problem, Thompson Sampling or decaying epsilon-greedy might work better
 
 q_star = True Action Value
 '''
@@ -24,7 +31,6 @@ class Bandit:
         return np.argmax(self.q_estimates)  ## Exploitation
     
     def epsilon_greedy(self, epsilon):
-        
         if np.random.rand() < epsilon:
             return np.random.randint(self.k)   ## Exploration
         return self.greedy_sel()
@@ -40,9 +46,6 @@ class Bandit:
         
     def update_action_value(self, action, reward, alpha=None):
         self.action_counts[action] += 1
-        # alpha = 1/self.action_counts[action]
-        # self.q_estimates[action] += alpha * (reward - self.q_estimates[action])
-        
         if alpha is None:  # Sample averaging
             alpha = 1/self.action_counts[action]
         self.q_estimates[action] += alpha * (reward - self.q_estimates[action])
@@ -53,20 +56,20 @@ num_runs = 2000
 num_steps = 1000
 k=10
 
-def loop(method, epsilion=0.1, c=2):
+def loop(method, epsilon=0.1, c=2):   ## Tune value of epsilon to see changes
     avg_reward = np.zeros(num_steps)
-    for _ in range(2000):
+    for _ in range(num_runs):
         bandit = Bandit(k)
         rewards = np.zeros(num_steps)
         
         for step in range(num_steps):
             
-            if method == "epsilon_greedy":
-                action = bandit.decaying_epsilon_greedy_sel(epsilion, step)     ## Uncomment this to test decayinf E-greedy
-            elif method == "decaying_epsilon":
-                action = bandit.epsilon_greedy(epsilion)
-            elif method == "ucb":  
+            if method == "ucb":
                 action = bandit.ucb_action_selection(step, c)
+            elif method == "decay_epsilon_greedy":  
+                action = bandit.decaying_epsilon_greedy_sel(epsilon, step)
+            elif method == "epsilon_greedy":  
+                action = bandit.epsilon_greedy(epsilon)
             else:
                 raise  ValueError("Method not found")
             reward = bandit.reward_function(action)
@@ -77,7 +80,7 @@ def loop(method, epsilion=0.1, c=2):
     
     return avg_reward / num_runs
 
-methods = ["epsilon_greedy", "ucb"]
+methods = ["epsilon_greedy", "ucb", "decay_epsilon_greedy"]
 results_dict = {}
 for method in methods:
     results_dict[method] = loop(method)
@@ -90,10 +93,12 @@ load_res = np.load("Bandit_Algorithms/Results/k_armed_bandit.npy", allow_pickle=
 plt.figure(figsize=(10, 5))
 plt.plot(load_res["epsilon_greedy"], label="Epsilon-Greedy (0.1)", color="blue")
 plt.plot(load_res["ucb"], label="UCB (c=2)", color="red")
+plt.plot(load_res["decay_epsilon_greedy"], label="Decaying Greedy Epsilon (0.1)", color="yellow")
+
 
 plt.xlabel("Steps")
 plt.ylabel("Average Reward")
-plt.title("Performance of Epsilon-Greedy vs UCB")
+plt.title("Performance of Epsilon-Greedy vs UCB vs Decaying Greedy Epsilon")
 plt.legend()
 plt.grid()
 plt.savefig("Bandit_Algorithms/Results/k_armed_bandit.png")
