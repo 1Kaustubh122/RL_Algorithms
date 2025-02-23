@@ -9,7 +9,8 @@ q_star = True Action Value
 class Bandit:
     def __init__(self, k):
         self.k = k
-        self.q_estimates = np.zeros(k)
+        # self.q_estimates = np.zeros(k)    ## Natural Expectation
+        self.q_estimates = np.ones(k) * 5   ##Early Exploratin
         self.action_counts = np.zeros(k)
         self.q_star = np.random.normal(0, 1, self.k)
         
