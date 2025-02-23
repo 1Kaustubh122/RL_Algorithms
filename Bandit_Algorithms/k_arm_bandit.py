@@ -31,13 +31,17 @@ class Bandit:
             return np.random.randint(self.k)  
         return self.greedy_sel() 
         
-    def update_action_value(self, action, reward):
-        self.action_counts[action] += 1
-        alpha = 1/self.action_counts[action]
+    def update_action_value(self, action, reward, alpha=None):
+        # self.action_counts[action] += 1
+        # alpha = 1/self.action_counts[action]
+        # self.q_estimates[action] += alpha * (reward - self.q_estimates[action])
+        
+        if alpha is None:  # Sample averaging
+            alpha = 1/self.action_counts[action]
         self.q_estimates[action] += alpha * (reward - self.q_estimates[action])
 
 num_runs = 2000
-num_steps = 1000
+num_steps = 1000 ## Can check for more value
 k=10
 
 def loop(epsilion):
@@ -50,7 +54,8 @@ def loop(epsilion):
             # action = bandit.decaying_epsilon_greedy_sel(epsilion, step)     ## Uncomment this to test decayinf E-greedy
             action = bandit.epsilon_greedy(epsilion)
             reward = bandit.reward_function(action)
-            bandit.update_action_value(action, reward)
+            # bandit.update_action_value(action, reward)
+            bandit.update_action_value(action, reward, alpha=0.1)
             rewards[step] = reward
             
         avg_reward += rewards 
