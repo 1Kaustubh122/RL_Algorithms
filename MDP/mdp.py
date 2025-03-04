@@ -93,33 +93,38 @@ class MDP:
         return best_action
     
 
+
     def visualize_policy(self):
         action_arrows = {"up": "↑", "down": "↓", "right": "→", "left": "←"}
-        
         policy_grid = np.full((3, 3), " ")
 
         for state in self.state_space:
             if state in self.rewards:
-                policy_grid[state] = "G"  
+                policy_grid[state] = "G"
             else:
                 best_action = self.policy_extraction(state)
                 policy_grid[state] = action_arrows.get(best_action, " ")
 
-        _, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(4, 4))
         ax.set_xticks(np.arange(3) + 0.5, minor=True)
         ax.set_yticks(np.arange(3) + 0.5, minor=True)
-        ax.grid(which="minor", color="black", linestyle='-', linewidth=1)
+        ax.grid(which="minor", color="black", linestyle='-', linewidth=2)
         ax.tick_params(which="minor", size=0)
         ax.set_xticklabels([])
         ax.set_yticklabels([])
 
         for i in range(3):
             for j in range(3):
-                ax.text(j, i, policy_grid[i, j], ha='left', va='center_baseline', fontsize=20, fontweight='bold')
+                ax.text(j, i + 0.15, policy_grid[i, j], ha='center', va='center_baseline', 
+                        fontsize=20, fontweight='bold')
 
-        plt.gca().invert_yaxis()  
-        plt.savefig("MDP/Results/mdp_3x3_grid.png")
+        plt.gca().invert_yaxis()
+        plt.subplots_adjust(bottom=0.1, top=0.9)  
+
+        plt.draw()  # Force matplotlib to render the figure before saving
+        plt.savefig("MDP/Results/mdp_3x3_grid.png", bbox_inches="tight", dpi=300)  # Save properly
         plt.show()
+
         
 
 
