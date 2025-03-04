@@ -118,8 +118,8 @@ class MDP:
                 ax.text(j, i, policy_grid[i, j], ha='left', va='center_baseline', fontsize=20, fontweight='bold')
 
         plt.gca().invert_yaxis()  
-        plt.show()
         plt.savefig("MDP/Results/mdp_3x3_grid.png")
+        plt.show()
         
 
 
