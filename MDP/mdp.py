@@ -99,8 +99,10 @@ class MDP:
         policy_grid = np.full((3, 3), " ")
 
         for state in self.state_space:
-            if state in self.rewards:
+            if state == (0,2):
                 policy_grid[state] = "G"
+            elif state == (2,2):
+                policy_grid[state] = "X"
             else:
                 best_action = self.policy_extraction(state)
                 policy_grid[state] = action_arrows.get(best_action, " ")
