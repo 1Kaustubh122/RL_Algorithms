@@ -107,7 +107,7 @@ class MDP:
                 best_action = self.policy_extraction(state)
                 policy_grid[state] = action_arrows.get(best_action, " ")
 
-        fig, ax = plt.subplots(figsize=(4, 4))
+        _, ax = plt.subplots(figsize=(4, 4))
         ax.set_xticks(np.arange(3) + 0.5, minor=True)
         ax.set_yticks(np.arange(3) + 0.5, minor=True)
         ax.grid(which="minor", color="black", linestyle='-', linewidth=2)
@@ -123,8 +123,8 @@ class MDP:
         plt.gca().invert_yaxis()
         plt.subplots_adjust(bottom=0.1, top=0.9)  
 
-        plt.draw()  # Force matplotlib to render the figure before saving
-        plt.savefig("MDP/Results/mdp_3x3_grid.png", bbox_inches="tight", dpi=300)  # Save properly
+        plt.draw() 
+        plt.savefig("MDP/Results/mdp_3x3_grid.png") 
         plt.show()
 
         
