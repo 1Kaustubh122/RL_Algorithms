@@ -4,21 +4,23 @@ import random
 import os
 
 """
-Implementation of First-Visit Monte Carlo
-This method estimates value function using sample returns from the full episodes.
-It considers only first time a state 's' is visitited in an episode for updating the value function
+Implementation of N-Step Monte Carlo
+It doesn't wait for the entire episode like MC (Monte Carlo) or just the next step like TD (Temporal Difference),
+it updates after N steps.
 
-For each state, it computes G (sum of discounted rewards from that point onwards)
-It updates V(s) by taking average of all first visit returns.
+Some cases
+if N == 1   -> 1-step TD Learning
+if N -> inf -> MonteCarlo 
 
-Drawbacks: Ignore extra info when states are visited multiple times,
-           Requires full episodes.
+Drawbacks: Tuning of N, tradeoff between bias and variance,
+           smaller N -> more bias, less variance
+           larger  N -> less bias, more variance 
 """
 
 os.makedirs("Monte_Carlo/Results", exist_ok=True)
 
-class FirstVisitMcPredection:
-    def __init__(self, pi=None, gamma=0.9):
+class NStepMcPredection:
+    def __init__(self, pi=None, gamma=0.9, alpha=0.1, n=7):
         self.state_space = [(i, j) for i in range(3) for j in range(3)]
         self.rewards = {(0,2): 1, (2,2):-1}
         self.val_pi_s = {s: self.rewards.get(s, 0) for s in self.state_space}
@@ -32,6 +34,9 @@ class FirstVisitMcPredection:
         }
         
         self.mse_lst = [] 
+        
+        self.alpha = alpha
+        self.n = n
 
         
 
@@ -73,21 +78,26 @@ class FirstVisitMcPredection:
             state = next_state
     
     def monte_carlo(self):
-        epsiode_lst = list(reversed(self.episode_list))
         
-        G = 0
-        visited_states = set()
-        alpha = 0.1
-        
-        for state, _, reward in epsiode_lst:
-            G = self.gamma * G + reward
+        ep_len = len(self.episode_list)
+        for t in range(ep_len):
+            G = 0
+            n_step = min(self.n, ep_len - t)
             
-            if state not in visited_states and state not in self.rewards:
-                self.num_visits[state] += 1
-                self.val_pi_s[state] += alpha * (G - self.val_pi_s[state]) / self.num_visits[state]
-                visited_states.add(state)
+            for i in range(n_step):
+                _, _, reward = self.episode_list[t + i]
+                G += (self.gamma ** i) * reward
                 
+            if t + self.n < ep_len:
+                G += (self.gamma ** self.n) * self.val_pi_s[self.episode_list[t+self.n][0]]
+                    
+            state, _, _ = self.episode_list[t]
             
+            if state not in self.rewards:
+                self.num_visits[state] += 1
+                self.val_pi_s[state] += (G - self.val_pi_s[state]) / self.num_visits[state]
+                
+        
     def train(self, num_episodes=100):    ## You can increase number of episodes
         
         for i in range(num_episodes):
@@ -111,7 +121,7 @@ class FirstVisitMcPredection:
         plt.ylabel("Mean Squared Error")
         plt.title("MSE of Value Function")
         plt.grid()
-        plt.savefig("Monte_Carlo/Results/first_visit_mc_mse.png") 
+        plt.savefig("Monte_Carlo/Results/n_steps_mc_mse.png") 
         plt.show()
         
         val_mat = np.zeros((3,3)) 
@@ -126,10 +136,10 @@ class FirstVisitMcPredection:
                 
         plt.colorbar(label="State Value")
         plt.title("Final Value Function Heatmap")
-        plt.savefig("Monte_Carlo/Results/first_visit_mc_heat_map.png") 
+        plt.savefig("Monte_Carlo/Results/n_step_mc_heat_map.png") 
         plt.show()
 
 
-alpha = FirstVisitMcPredection()
+alpha = NStepMcPredection()
 alpha.train()
 alpha.plot_res()
