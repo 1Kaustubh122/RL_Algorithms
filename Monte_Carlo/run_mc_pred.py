@@ -1,5 +1,7 @@
 import os
 import matplotlib.pyplot as plt
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from utils.env import Enviornment
 from utils.policy import PolicySelection
 from MC_Predection_and_Control.mc_predection import MonteCarloPrediction

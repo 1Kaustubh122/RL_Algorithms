@@ -19,21 +19,35 @@
 # print(num_visits, val_pi_s)
 
 
-state = [(row, col) for row in range(5) for col in range(5) ]
-curr_state = (0,1)
+# state = [(row, col) for row in range(5) for col in range(5) ]
+# curr_state = (0,1)
 
-grid_display = []
+# grid_display = []
 
-for i, cell in enumerate(state):
-    if cell == curr_state:
-        grid_display.append(" A ")
-    elif cell == (0, 0):
-        grid_display.append(" S ")
-    elif cell == (4, 4):
-        grid_display.append(" G ")
-    else:
-        grid_display.append(" . ")
+# for i, cell in enumerate(state):
+#     if cell == curr_state:
+#         grid_display.append(" A ")
+#     elif cell == (0, 0):
+#         grid_display.append(" S ")
+#     elif cell == (4, 4):
+#         grid_display.append(" G ")
+#     else:
+#         grid_display.append(" . ")
         
-    if (i + 1) % 5 == 0:
-        print("".join(grid_display))
-        grid_display = []
+#     if (i + 1) % 5 == 0:
+#         print("".join(grid_display))
+#         grid_display = []
+
+
+
+"""
+# = Done
+
+To Do:
+# 1. K armed bandit
+# 2. MDP
+3. Monte Carlo
+    # - First Visit, Every Visit MC Predection
+    - On Policy, Off Policy MC Control
+4. Temporal Difference (TD)
+"""
