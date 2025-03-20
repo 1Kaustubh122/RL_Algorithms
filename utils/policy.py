@@ -28,10 +28,9 @@ class PolicySelection:
         return np.argmax(Q_action_value_table)
             
     
-    def target_policy(self):
+    def target_policy(self, Q_action_value_table):
         """ Returns the greedy action, used as the target policy in off-policy learning"""
-        probab = np.ones(len(self.action_space)) / len(self.action_space)
-        return np.random.choice(self.action_space, p=probab)
+        return np.argmax(Q_action_value_table)
 
 
 
