@@ -4,6 +4,7 @@ class PolicySelection:
     def __init__(self, action_space, epsilon =0.9):
         self.action_space= action_space
         self.epsilon = epsilon
+        self.epsilon_policy = {}
         
     def greedy_sel(self, Q_action_value_table):
         """ Returns the action with the highest Q Values (greedy selection)"""
@@ -31,6 +32,14 @@ class PolicySelection:
     def target_policy(self, Q_action_value_table):
         """ Returns the greedy action, used as the target policy in off-policy learning"""
         return np.argmax(Q_action_value_table)
+    
+    def epsilon_greedy_probab(self, Q_value):
+        num_actions = len(self.action_space)
+        best_action = np.argmax(Q_value)
 
+        action_probabs = np.ones(num_actions) * (self.epsilon/ num_actions)
+        action_probabs[best_action] += (1-self.epsilon)
+
+        return action_probabs
 
 
