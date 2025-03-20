@@ -44,7 +44,7 @@ class MonteCarloPrediction:
             
         return episode
     
-    def first_visit_mc_pred(self, num_episodes = 1000):
+    def first_visit_mc_on_policy(self, num_episodes = 1000):
         for _ in range(num_episodes):
             episode = self.episode_generation()
             G = 0
@@ -61,7 +61,7 @@ class MonteCarloPrediction:
         
         return self.V
     
-    def every_visit_mc_pred(self, num_episodes =1000):
+    def every_visit_mc_on_policy(self, num_episodes =1000):
         for _ in range(num_episodes):
             episode = self.episode_generation()
             G = 0
@@ -74,6 +74,9 @@ class MonteCarloPrediction:
                 self.V[state] = np.mean(self.returns[state])
         
         return self.V
+    
+    def off_policy_mc_pred(self, num_episode = 1000):
+        ...
     
     def print_value_function(self):
         """Prints the value function as a grid."""

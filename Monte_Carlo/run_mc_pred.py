@@ -39,7 +39,7 @@ if __name__ == "__main__":
     mc = MonteCarloPrediction(policy_selector, env, gamma=0.9, policy_type="e-greedy")
 
     ## For First Visit
-    V_first = mc.first_visit_mc_pred(num_episodes=1000)
+    V_first = mc.first_visit_mc_on_policy(num_episodes=1000)
     mc.print_value_function()
     grid_first = np.zeros((size, size))
     
@@ -48,7 +48,8 @@ if __name__ == "__main__":
             state = (row, col)
             grid_first[row, col] = V_first[state]
     print()
-    V_every = mc.every_visit_mc_pred(num_episodes=1000)
+    
+    V_every = mc.every_visit_mc_on_policy(num_episodes=1000)
     mc.print_value_function()
     
     grid_every = np.zeros((size, size))
@@ -56,6 +57,16 @@ if __name__ == "__main__":
         for col in range(size):
             state = (row, col)
             grid_every[row, col] = V_every[state]
+            
+    V_off = mc.off_policy_mc_pred(num_episodes=1000)
+    mc.print_value_function()
+    
+    grid_off = np.zeros((size, size))
+    for row in range(size):
+        for col in range(size):
+            state = (row, col)
+            grid_off[row, col] = V_off[state]
+
             
     # print(grid_every, grid_first)
     fig, (ax1, ax2) = plt.subplots(1,2 , figsize=(16, 6))
@@ -89,9 +100,22 @@ if __name__ == "__main__":
     
     fig.colorbar(image2, ax=ax2, label='Value')
     
+    image3 = ax2.imshow(grid_every, cmap="viridis", interpolation = "nearest")
+    ax2.set_title("Every Visit e = 0.9")
+    ax2.set_xlabel('Column')
+    ax2.set_ylabel('Row')
+    ax2.grid(True, which='both', color='black', linestyle='-', linewidth =0.5)
+    ax2.set_xticks(np.arange(size))
+    ax2.set_yticks(np.arange(size))
+    
+    for i in range(size):
+        for j in range(size):
+            ax2.text(j, i, f"{grid_every[i, j]:.2f}", ha='center', va='center', color='white')
+    
+    fig.colorbar(image2, ax=ax2, label='Value')
+    
     plt.tight_layout()
     
     plt.savefig("Monte_Carlo/Results/First_vs_Every_Visit_MC.png") 
 
     plt.show()
-    
