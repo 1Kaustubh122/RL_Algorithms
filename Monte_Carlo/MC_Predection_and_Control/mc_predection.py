@@ -41,24 +41,33 @@ class MonteCarloPrediction:
     
     def first_visit_mc_pred(self, num_episodes = 1000):
         for _ in range(num_episodes):
-            episode = gen_episode()
-    
-    def first_visit_mc_on_policy(self, num_episodes = 1000):
-        for _ in range(num_episodes):
-            episode = self.episode_generation(policy_type="random")
+            episode = self.gen_episode(policy_type="random")
             G = 0
-            visited_states = set()
-            
-            for t in reversed(range(len(episode))):
+            visited_state = set()
+            for t in range(reversed(episode)):
                 state, _, reward = episode[t]
                 G = self.gamma*G + reward
                 
-                if state not in visited_states:
-                    visited_states.add(state)
+                if state not in visited_state:
+                    visited_state.add(state)
                     self.returns[state].append(G)
                     self.V[state] = np.mean(self.returns[state])
         
         return self.V
+                
+    def every_visit_mc_pred(self, num_episodes = 1000):
+        for _ in range(num_episodes):
+            episode = self.gen_episode(policy_type="random")
+            G = 0
+            for t in range(reversed(episode)):
+                state, _, reward = episode[t]
+                G = self.gamma*G + reward
+                self.returns[state].append(G)
+                self.V[state] = np.mean(self.returns[state])
+        
+        return self.V
+    
+    def mc
     
     def every_visit_mc_on_policy(self, num_episodes =1000):
         for _ in range(num_episodes):
@@ -97,26 +106,7 @@ class MonteCarloPrediction:
             
             return self.Q
         
-    def every_visit_off_policy(self, num_episode = 1000):
-        C = defaultdict(float)
-        
-        for _ in range(num_episode):
-            episode = self.episode_generation(policy_type="off_policy_behavior")
-            G = 0
-            W = 1
-            
-            for t in reversed(range(len(episode))):
-                state, action, reward = episode[t]
-                G = self.gamma*G + reward
-                self.sum_weights[(state, action)] += W
-                self.Q[(state, action)] += W/self.C[(state, action)] * (G - self.Q[(state, action)])
-                W *= self.policy_selector.target_policy(self.Q) / self.policy_selector.behavior_policy(self.Q)
-                
-                if W == 0:
-                    break
-            
-            return self.Q
-                
+
                 
             
     def print_value_function(self):
