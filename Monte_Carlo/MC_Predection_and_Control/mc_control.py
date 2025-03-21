@@ -12,7 +12,7 @@ class MonteCarloControl:
         self.env = env
         self.gamma = gamma
         self.returns = defaultdict(list)
-        self.Q_S_A = defaultdict(float)
+        self.Q_S_A = defaultdict(lambda: np.zeros(len(self.env.action_space)))
         self.A_star = defaultdict(float)
      
         
@@ -38,6 +38,9 @@ class MonteCarloControl:
             if done:
                 break
         return episode
+    
+    def exploring_start_mc(self):
+        ...
             
     def on_policy_first_visit(self, num_episode= 1000):
         for _ in range(num_episode):
