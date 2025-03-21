@@ -14,7 +14,10 @@ class MonteCarloPrediction:
         self.sum_weighted_returns = defaultdict(float)        # Stores sum of weighted returns
         self.sum_weights = defaultdict(float)                 # Stores sum of weight  
         self.V = defaultdict(float)                           # Stores State-Value Function
-    
+        self.num_action = len(self.env.action_space)          # Number of possible action
+        self.Q = defaultdict(lambda: np.zeros(self.num_action))
+        
+        
     def action_selector(self, state, policy_type, Q_Value=None):
         """ Code to Select Policy Type"""
         return self.policy_selector.select_action(state, policy_type, Q_Value)
@@ -44,7 +47,7 @@ class MonteCarloPrediction:
             episode = self.gen_episode(policy_type="random")
             G = 0
             visited_state = set()
-            for t in range(reversed(episode)):
+            for t in range(reversed(range(len(episode)))):
                 state, _, reward = episode[t]
                 G = self.gamma*G + reward
                 
@@ -59,7 +62,7 @@ class MonteCarloPrediction:
         for _ in range(num_episodes):
             episode = self.gen_episode(policy_type="random")
             G = 0
-            for t in range(reversed(episode)):
+            for t in range(reversed(range(len(episode)))):
                 state, _, reward = episode[t]
                 G = self.gamma*G + reward
                 self.returns[state].append(G)
@@ -67,48 +70,86 @@ class MonteCarloPrediction:
         
         return self.V
     
-    def mc
-    
-    def every_visit_mc_on_policy(self, num_episodes =1000):
+    def on_policy_mc_pred_Q_s_a(self, num_episodes = 1000):
+        returns = defaultdict(lambda: [[] for _ in range(self.num_action)])
         for _ in range(num_episodes):
-            episode = self.episode_generation(policy_type="random")
+            episode = self.gen_episode(policy_type="random")
             G = 0
-            
-            for t in reversed(range(len(episode))):
-                state, _, reward = episode[t]
-                G = self.gamma*G + reward
-
-                self.returns[state].append(G)
-                self.V[state] = np.mean(self.returns[state])
-        
-        return self.V
-    
-    def first_visit_off_policy(self, num_episode = 1000):
-        C = defaultdict(float)
-        
-        for _ in range(num_episode):
-            episode = self.episode_generation(policy_type="off_policy_behavior")
-            G = 0
-            W = 1
-            visited_= set()
-            for t in reversed(range(len(episode))):
+            visited_state = set()
+            for t in range(reversed(episode)):
                 state, action, reward = episode[t]
                 G = self.gamma*G + reward
                 
-                if state not in visited_:
-                    visited_.add(state)
-                    self.sum_weights[(state, action)] += W
-                    self.Q[(state, action)] += W/self.C[(state, action)] * (G - self.Q[(state, action)])
-                    W *= self.policy_selector.target_policy(self.Q) / self.policy_selector.behavior_policy(self.Q)
+                if state not in visited_state:
+                    visited_state.add((state, action))
+                    returns[state][action].append(G)
+                    self.Q[state][action] = np.mean(returns[state][action])
+        
+        return self.Q
+            
+    def off_policy_mc_pred_V_pi(self, num_episodes = 1000):
+        for _ in range(num_episodes):
+            episode = self.gen_episode(policy_type="off_policy_behavior")
+            G = 0
+            W = 1
+            visited_state = set()
+            for t in reversed(range(len(episode))):
+                state, _, reward = episode[t]
+                G = self.gamma*G + reward
+                
+                if state not in visited_state:
+                    visited_state.add(state)
+                    self.sum_weighted_returns[state] += W * G
+                    self.sum_weights[state] += W
+                    
+                    if self.sum_weights[state] != 0:
+                        self.V[state] = self.sum_weighted_returns[state] / self.sum_weights[state]
+                
+                pi_a = 1
+                b_a = 1/self.num_action
+                
+                if b_a == 0:
+                    break
+                
+                W *= pi_a/b_a
                 
                 if W == 0:
                     break
             
-            return self.Q
+        return self.V
         
-
-                
+    def off_policy_mc_pred_Q_s_a(self, num_episodes = 1000):
+        for _ in range(num_episodes):
+            episode = self.gen_episode(policy_type="off_policy_behavior")
+            G = 0
+            W = 1
+            visited_state = set()
             
+            for t in reversed(range(len(episode))):
+                state, action, reward = episode[t]
+                G = self.gamma * G + reward
+                
+                if (state, action) not in visited_state:
+                    visited_state.add((state, action))
+                    self.sum_weighted_returns[state][action] += W * G
+                    self.sum_weights[state][action] += W
+                    
+                    if self.sum_weights[state][action] != 0:
+                        self.Q[state][action] = self.sum_weighted_returns[state][action] / self.sum_weights[state][action]
+                        
+                pi_a = 1
+                b_a = 1/self.num_action
+                
+                if b_a == 0:
+                    break
+                
+                W *= pi_a/b_a
+                
+                if W == 0:
+                    break
+                
+        return self.Q
+        
     def print_value_function(self):
         """Prints the value function as a grid."""
         for row in range(self.env.size):
