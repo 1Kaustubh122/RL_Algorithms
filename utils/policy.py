@@ -19,7 +19,7 @@ class PolicySelection:
                 return self.e_greedy_policy(Q[state])
             
             elif policy_type == "off_policy_behavior":
-                return self.behavior_policy(Q[state])
+                return self.behavior_policy()
             
             elif policy_type == "greedy":
                 return self.greedy_sel(Q[state])

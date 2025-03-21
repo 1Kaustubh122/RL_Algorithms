@@ -11,36 +11,39 @@ class MonteCarloControl:
         self.policy_selector = policy_selector
         self.env = env
         self.gamma = gamma
-        self.returns = defaultdict(list)
         self.Q_S_A = defaultdict(lambda: np.zeros(len(self.env.action_space)))
-        self.A_star = defaultdict(float)
+        self.policy = defaultdict(lambda: np.random.randint(len(self.env.action_space)))
+        self.returns = defaultdict(lambda: [[] for _ in range(len(self.env.action_space))])
      
         
-    def action_selector(self, Q_values, policy_type):
-        """ Selection of policy type"""
-        if policy_type == "on_policy":
-            return self.policy_selector.e_greedy_policy(Q_values)
-        elif policy_type == "off_policy_behavior":
-            return self.policy_selector.behavior_policy(Q_values)
-        elif policy_type == "off_policy_target":
-            return self.policy_selector.target_policy(Q_values)
-        
-    def episode_gen(self):
+    def action_selector(self, state, policy_type, Q_Value=None):
+        """ Code to Select Policy Type"""
+        return self.policy_selector.select_action(state, policy_type, Q_Value)
+         
+    def gen_episode(self, policy_type, Q=None):
         episode = []
         state = self.env.reset()
+        # Q_values = defaultdict(lambda: np.zeros(len(self.env.action_space)))  
         
         while True:
-            Q_values = [self.Q_S_A[(state, a)] for a in self.env.action_space]
-            action = self.action_selector(Q_values, "on_policy")
+            # self.env.render()
+            action = self.action_selector(state, policy_type, Q)                    
+
             next_state, reward, done = self.env.step(action)
+
             episode.append((state, action, reward))
             state = next_state
+            # print("Done first ep")
             if done:
                 break
+            
         return episode
     
-    def exploring_start_mc(self):
-        ...
+    def mc_control_exploring_start(self, num_episodes = 1000):
+        for _ in range(num_episodes):
+            start = self.env.reset()            ## Can update it to choose random action too #Default (0, 0)
+            action = np.random.randint()
+            
             
     def on_policy_first_visit(self, num_episode= 1000):
         for _ in range(num_episode):
