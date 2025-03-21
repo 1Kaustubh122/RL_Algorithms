@@ -56,15 +56,15 @@ class PolicySelection:
             return np.random.randint(len(Q_action_value_table))
         return np.argmax(Q_action_value_table)
             
-    # def behavior_policy(self):
-    #     """ Returns an action randomly from thr action space"""
-    #     return np.random.choice(self.action_space)
+    def behavior_policy(self):
+        """ Returns an action randomly from thr action space"""
+        return np.random.choice(self.action_space)
     
-    def behavior_policy(self, Q_action_value_table):
-        """ Update behavior Policy """
-        if np.random.rand() < 0.5:
-            return np.random.choice(self.action_space)
-        return np.argmax(Q_action_value_table)
+    # def behavior_policy(self, Q_action_value_table):
+    #     """ Update behavior Policy """
+    #     if np.random.rand() < 0.5:
+    #         return np.random.choice(self.action_space)
+    #     return np.argmax(Q_action_value_table)
             
     
     def target_policy(self, Q_action_value_table):
