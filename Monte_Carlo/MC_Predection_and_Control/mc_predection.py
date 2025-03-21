@@ -106,7 +106,6 @@ class MonteCarloPrediction:
                     visited_state.add(state)
                     self.sum_weighted_returns[state] += W * G
                     self.sum_weights[state] += W
-                    print(self.sum_weights[state])
                     if self.sum_weights[state] != 0:
                         print(self.V[state])
                         self.V[state] = self.sum_weighted_returns[state] / self.sum_weights[state]
