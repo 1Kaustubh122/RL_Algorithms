@@ -9,8 +9,9 @@ from utils.policy import PolicySelection
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 class MonteCarloPrediction:
-    def __init__(self, env, policy_type = "e-greedy", gamma = 0.9):
+    def __init__(self, env, gamma = 0.9):
         self.env = env                                        # Environment
+        policy_type = "e-greedy"
         self.policy_selector = PolicySelection(action_space=self.env.action_space,policy_type=policy_type, epsilon=0.9)
         # self.policy_selector = policy_selector                # Policy Selector Instance
         self.gamma = gamma                                    # Discount Factor
@@ -98,7 +99,7 @@ class MonteCarloPrediction:
             W = 1
             visited_state = set()
             for t in reversed(range(len(episode))):
-                state, action, reward = episode[t]
+                state, _, reward = episode[t]
                 G = self.gamma*G + reward
                 
 
@@ -107,20 +108,21 @@ class MonteCarloPrediction:
                     self.sum_weighted_returns[state] += W * G
                     self.sum_weights[state] += W
                     if self.sum_weights[state] != 0:
-                        print(self.V[state])
+                        # print(self.V[state])
                         self.V[state] = self.sum_weighted_returns[state] / self.sum_weights[state]
 
                 if W == 0:
                     break 
                 
-                pi_a = 1.0 if self.env.action_space.index(action) == 0 else 0.0
+                pi_a = 1.0 / self.num_action
                 b_a = 1.0 / self.num_action
 
-                # if b_a == 0:
-                #     break  
+                if b_a == 0:
+                    break
+                  
                 W *= pi_a / b_a
-
-        print(self.V)
+                
+        # print(self.V)
         return self.V
         
     def off_policy_mc_pred_Q_s_a(self, num_episodes = 1000):
@@ -133,16 +135,16 @@ class MonteCarloPrediction:
             for t in reversed(range(len(episode))):
                 state, action, reward = episode[t]
                 G = self.gamma * G + reward
-                
-                if (state, action) not in visited_state:
-                    visited_state.add((state, action))
-                    self.sum_weighted_returns[state][action] += W * G
-                    self.sum_weights[state][action] += W
+                action_idx = self.env.action_space.index(action)
+                if (state, action_idx) not in visited_state:
+                    visited_state.add((state, action_idx))
+                    self.sum_weighted_returns[(state, action_idx)] += W * G
+                    self.sum_weights[(state, action_idx)] += W
                     
-                    if self.sum_weights[state][action] != 0:
-                        self.Q[state][action] = self.sum_weighted_returns[state][action] / self.sum_weights[state][action]
+                    if self.sum_weights[(state, action_idx)] != 0:
+                        self.Q[(state, action_idx)] = self.sum_weighted_returns[(state, action_idx)] / self.sum_weights[(state, action_idx)]
                         
-                pi_a = 1
+                pi_a = 1/self.num_action
                 b_a = 1/self.num_action
                 
                 if b_a == 0:
@@ -152,7 +154,7 @@ class MonteCarloPrediction:
                 
                 if W == 0:
                     break
-                
+           
         return self.Q
         
     def print_value_function(self):
