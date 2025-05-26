@@ -159,3 +159,6 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 .vscode/settings.json
+phase_01_tabular/5_N_Step_BootStrapping/n_step/__pycache__
+.gitignore
+phase_01_tabular/6_Planning/planning/__pycache__
