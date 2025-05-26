@@ -16,7 +16,7 @@ It builds foundational algorithms on grid-based environments, progressing to ful
 
 <pre>
 rlx-core/
-├── phase_01_tabular/             # Bandits, TD, MC, SARSA, Q-Learning, Planning
+├── phase_01_tabular/             # Bandits, MDP, MC, TD, n-step, Planning
 ├── phase_02_function_approx/     # Tile/Coarse Coding, Neural Approx
 ├── phase_03_dqn/                 # DQN, DDQN, Dueling, Rainbow, PER
 ├── phase_04_pg/                  # REINFORCE, A2C, PPO, TRPO
