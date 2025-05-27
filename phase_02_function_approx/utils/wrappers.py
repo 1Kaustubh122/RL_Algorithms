@@ -17,7 +17,7 @@ class NormalizeObs(gym.ObservationWrapper):
     
 class ClipAction(gym.ActionWrapper):
     def action(self, action):
-        return np.clip(action, self.env.action_space.low, self.env.action_space.high)
+        return np.clip(action, self.env.action_space.low, self.env.action_space.high)        ## Extra saftey => its like a fuse in an electrical circuit 
 
 def make_env(env_id : str):
     env = gym.make(env_id)
