@@ -1,4 +1,5 @@
 ##  Replay Buffer   ##
+import torch
 import numpy as np
 
 class ReplayBuffer:
@@ -11,7 +12,7 @@ class ReplayBuffer:
         self.rewards = np.zeros(self.capacity, dtype=np.float32)
         self.next_states = np.zeros((self.capacity, *self.state_shape), dtype=np.float32)
 
-        self.dones = np.zeros(capacity, dtype=np.bool_)
+        self.dones = np.zeros(capacity, dtype=np.float32)
         
         self.index  = 0
         self.size = 0
@@ -29,11 +30,11 @@ class ReplayBuffer:
     def getSample(self, batch_size):
         index = np.random.randint(0, self.size, size=batch_size)
         return (
-            self.states[index],
-            self.actions[index],
-            self.rewards[index],
-            self.next_states[index],
-            self.dones[index]
+            torch.tensor(self.states[index], dtype=torch.float32),
+            torch.tensor(self.actions[index], dtype=torch.float32),
+            torch.tensor(self.rewards[index], dtype=torch.float32),
+            torch.tensor(self.next_states[index], dtype=torch.float32),
+            torch.tensor(self.dones[index], dtype=torch.float32)
         )
         
     def __len__(self):
