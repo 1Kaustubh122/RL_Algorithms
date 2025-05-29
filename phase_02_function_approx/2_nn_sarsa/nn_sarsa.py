@@ -63,23 +63,22 @@ print(x)
 # print(q_values.shape)  ## torch.Size([1, 7])
 
 
-def compute_loss(net, target_net, state_batch, action_batch, reward_batch, next_state_batch, done_batch, gamma):
+def compute_loss(net, target_net, state_batch, action_batch, reward_batch,
+                 next_state_batch, next_action_batch, done_batch, gamma):
+
     state_batch = state_batch.view(state_batch.size(0), -1)
     next_state_batch = next_state_batch.view(next_state_batch.size(0), -1)
 
-    q_value = net(state_batch)  
-    state_action_value = q_value.gather(1, action_batch.unsqueeze(1)).squeeze(1)  
+    q_value = net(state_batch)
+    state_action_value = q_value.gather(1, action_batch.unsqueeze(1)).squeeze(1)
 
     with torch.no_grad():
-        next_q_value = target_net(next_state_batch)  
-        max_next_q_value, _ = next_q_value.max(dim=1) 
-        target_q_values = reward_batch + gamma * max_next_q_value * (1 - done_batch.float())
+        next_q_value = target_net(next_state_batch)
+        next_state_action_value = next_q_value.gather(1, next_action_batch.unsqueeze(1)).squeeze(1)
+        target_q_values = reward_batch + gamma * next_state_action_value * (1 - done_batch.float())
 
     loss = F.mse_loss(state_action_value, target_q_values)
-
     return loss
-
-
 
 
 obs_dim = 5
@@ -140,10 +139,10 @@ def train(render):
 
             action_idx = DISCRETE_ACTIONS.index(action)
             
-            replay_buffer.push(state_tensor, action_idx, reward, next_state_tensor, done, None)
+            replay_buffer.push(state_tensor, action_idx, reward, next_state_tensor, done)
             
             if len(replay_buffer) > batch_size:
-                states, actions, rewards, next_states, dones, _ = replay_buffer.sample(batch_size)
+                states, actions, rewards, next_states, dones = replay_buffer.sample(batch_size)
                 loss = compute_loss(q_net, target_net, states, actions, rewards, next_states, dones, gamma=0.99)
                 optimizer.zero_grad()
                 loss.backward()
