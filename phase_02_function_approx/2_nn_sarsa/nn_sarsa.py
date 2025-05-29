@@ -127,8 +127,9 @@ def train(render):
         episode_reward = 0
         frames = []  ## FOR Gif
         
+        action = e_greedy(state_tensor, q_net, epsilon=0.1)
+        
         for t in range(EPISODE_MAX_LEN):
-            action = e_greedy(state_tensor, q_net, epsilon=0.1)
             
             time_step = env.step(action)
             reward = time_step.reward
@@ -136,19 +137,22 @@ def train(render):
             next_state = np.concatenate([next_obs[k] for k in next_obs])
             next_state_tensor = torch.tensor(np.expand_dims(next_state, axis=0), dtype=torch.float32).to(device)
             done = time_step.last()
-
+            next_action = e_greedy(next_state_tensor, q_net, epsilon=0.1)
+            next_action_idx = DISCRETE_ACTIONS.index(next_action)
             action_idx = DISCRETE_ACTIONS.index(action)
             
-            replay_buffer.push(state_tensor, action_idx, reward, next_state_tensor, done)
             
+            replay_buffer.push(state_tensor, action_idx, reward, next_state_tensor, done, next_action_idx)
+
             if len(replay_buffer) > batch_size:
-                states, actions, rewards, next_states, dones = replay_buffer.sample(batch_size)
-                loss = compute_loss(q_net, target_net, states, actions, rewards, next_states, dones, gamma=0.99)
+                states, actions, rewards, next_states, dones, next_actions = replay_buffer.sample(batch_size)
+                loss = compute_loss(q_net, target_net, states, actions, rewards, next_states, next_actions, dones, gamma=0.99)
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
 
             state_tensor = next_state_tensor
+            action = next_action
 
             episode_reward += reward
             
