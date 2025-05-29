@@ -9,13 +9,19 @@ class MLP(nn.Module):
         super(MLP, self).__init__()
         
         layers = []
-        dims = [input_dim] + list(hidden_dims)
+        # dims = [input_dim] + list(hidden_dims)
+        last_dim = input_dim
         
-        for i in range(len(dims) - 1):
-            layers.append(nn.Linear(dims[i], dims[i+1]))
-            layers.append(nn.ReLU(implace=True))
+        # for i in range(len(dims) - 1):
+            # layers.append(nn.Linear(dims[i], dims[i+1]))
+            # layers.append(nn.ReLU(implace=True))
+        
+        for i in hidden_dims:
+            layers.append(nn.Linear(last_dim, i))
+            layers.append(nn.ReLU())
+            last_dim = i
             
-        layers.append(nn.Linear(dims[-1], output_dim))
+        layers.append(nn.Linear(last_dim, output_dim))
         self.net = nn.Sequential(*layers)
         
     def forward(self, x):
