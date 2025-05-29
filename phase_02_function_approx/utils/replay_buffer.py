@@ -1,41 +1,29 @@
-##  Replay Buffer   ##
 import torch
-import numpy as np
+import random
 
 class ReplayBuffer:
-    def __init__(self, capacity, state_shape):
-        
+    def __init__(self, capacity, device):
         self.capacity = capacity
-        self.state_shape = state_shape
-        self.states = np.zeros((self.capacity, *self.state_shape), dtype=np.float32)
-        self.actions = np.zeros(self.capacity, dtype=np.int32)
-        self.rewards = np.zeros(self.capacity, dtype=np.float32)
-        self.next_states = np.zeros((self.capacity, *self.state_shape), dtype=np.float32)
+        self.device = device
+        self.buffer = []
+        self.pos = 0
 
-        self.dones = np.zeros(capacity, dtype=np.float32)
-        
-        self.index  = 0
-        self.size = 0
-    
-    def add(self, state, action, reward, next_state, done):
-        self.states[self.index] = state
-        self.actions[self.index] = action
-        self.rewards[self.index] = reward
-        self.next_states[self.index] = next_state
-        self.dones[self.index] = done
-        
-        self.index = (self.index + 1) % self.capacity
-        self.size = min(self.size + 1, self.capacity)
-        
-    def getSample(self, batch_size):
-        index = np.random.randint(0, self.size, size=batch_size)
-        return (
-            torch.tensor(self.states[index], dtype=torch.float32),
-            torch.tensor(self.actions[index], dtype=torch.float32),
-            torch.tensor(self.rewards[index], dtype=torch.float32),
-            torch.tensor(self.next_states[index], dtype=torch.float32),
-            torch.tensor(self.dones[index], dtype=torch.float32)
-        )
-        
+    def push(self, state, action, reward, next_state, done):
+        if len(self.buffer) < self.capacity:
+            self.buffer.append(None)
+        self.buffer[self.pos] = (state, action, reward, next_state, done)
+        self.pos = (self.pos + 1) % self.capacity
+
+    def sample(self, batch_size):
+        batch = random.sample(self.buffer, batch_size)
+        states, actions, rewards, next_states, dones = zip(*batch)
+
+        states = torch.stack(states).to(self.device)
+        actions = torch.tensor(actions, dtype=torch.long, device=self.device)
+        rewards = torch.tensor(rewards, dtype=torch.float32, device=self.device)
+        next_states = torch.stack(next_states).to(self.device)
+        dones = torch.tensor(dones, dtype=torch.float32, device=self.device)
+        return states, actions, rewards, next_states, dones
+
     def __len__(self):
-        return self.size
+        return len(self.buffer)
