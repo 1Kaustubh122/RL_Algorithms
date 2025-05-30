@@ -31,16 +31,18 @@ target_net = QNetwork(obs_shape=obs_dim, num_actions=num_action).to(device)
 
 print(f"using device {device}")
 
-optimizer = torch.optim.Adam(q_net.parameters(), lr=1e-3)
+optimizer = torch.optim.Adam(q_net.parameters(), lr=5e-3)
 
-replay_buffer = ReplayBuffer(capacity=5000, device=device)
+replay_buffer = ReplayBuffer(capacity=50000, device=device)
 loss_fn=torch.nn.MSELoss()
 
-target_update_freq = 10
 def train(render):
-    dqn_agent = DQNAgent(q_net, target_net, replay_buffer, optimizer, loss_fn, epsilon=0.1, gamma=0.99, target_update_freq=target_update_freq)
-    num_eps = 1000
-    save_model_freq = 50
+    target_update_freq = 100
+    dqn_agent = DQNAgent(q_net, target_net, replay_buffer, optimizer, loss_fn, 
+                         epsilon_start=1.0, epsilon_end=0.01, epsilon_decay=0.995, gamma=0.99, 
+                         target_update_freq=target_update_freq)
+    num_eps = 1001
+    save_model_freq = 200
     
     reward_log = []
 
@@ -69,7 +71,7 @@ def train(render):
 
             episode_reward += reward
             
-            if render and episode >= 955:
+            if render and episode >= 999:
                 rgb_frame = env.physics.render(height=84, width=130, camera_id=0)
                 bgr_frame = cv2.cvtColor(rgb_frame, cv2.COLOR_RGB2BGR)
                 scale_factor = 4
@@ -81,12 +83,11 @@ def train(render):
                 cv2.imshow("Live Training", bgr_frame)
                 cv2.waitKey(1)
                 frames.append(rgb_frame)
-            
+
+        dqn_agent.update_epsilon()   
         reward_log.append(episode_reward)
         print(f"Episode {episode} — Reward: {episode_reward:.2f}")
 
-        if episode % target_update_freq == 0:
-            target_net.load_state_dict(q_net.state_dict())
 
         if episode % save_model_freq == 0:
             torch.save(q_net.state_dict(), f"q_net_episode_{episode}.pth")

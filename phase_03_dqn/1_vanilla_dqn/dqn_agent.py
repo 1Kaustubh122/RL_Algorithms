@@ -11,7 +11,6 @@ DISCRETE_ACTIONS = [
     np.array([ 0.5]),
     np.array([ 1.0])
 ]
-EPISODE_MAX_LEN = 300
 
 def discrete_action(idx):
     return DISCRETE_ACTIONS[idx] 
@@ -20,16 +19,22 @@ def pick_random_action():
     return DISCRETE_ACTIONS[random.randint(0,  6)]
 
 class DQNAgent:
-    def __init__(self, q_net, target_net, replay_buffer, optimizer, loss_fn, epsilon, gamma, target_update_freq):
+    def __init__(self, q_net, target_net, replay_buffer, optimizer, loss_fn, epsilon_start=1.0, epsilon_end=0.01, epsilon_decay=0.995, gamma=0.99, target_update_freq=10):
         self.q_net = q_net
         self.target_net = target_net
         self.replay_buffer = replay_buffer
         self.optimizer = optimizer
-        self.loss_fn = loss_fn 
-        self.epsilon = epsilon
-        self.gamma = gamma 
+        self.loss_fn = loss_fn
+        self.epsilon = epsilon_start
+        self.epsilon_end = epsilon_end
+        self.epsilon_decay = epsilon_decay
+        self.gamma = gamma
         self.target_update_freq = target_update_freq
         self.learn_step_counter = 0
+    
+    def update_epsilon(self):
+        if self.epsilon > self.epsilon_end:
+            self.epsilon *= self.epsilon_decay
         
     def e_greedy_action_select(self, state_tensor):
         if random.random() < self.epsilon:
@@ -76,6 +81,8 @@ class DQNAgent:
         loss.backward()
         self.optimizer.step()
         self.learn_step_counter += 1
+        if self.learn_step_counter % self.target_update_freq == 0:
+            self.update_target_net()
 
     def update_target_net(self):
         self.target_net.load_state_dict(self.q_net.state_dict())
