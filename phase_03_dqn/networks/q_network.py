@@ -23,9 +23,9 @@ class QNetwork(nn.Module):
     
 
 
-class DuelingQNetwork:
+class DuelingQNetwork(nn.Module):
     def __init__(self, obs_shape, num_actions):
-        super(QNetwork, self).__init__()
+        super().__init__()
         self.feature = nn.Sequential(
             nn.Linear(obs_shape, 128),
             nn.ReLU(),
@@ -43,12 +43,6 @@ class DuelingQNetwork:
             nn.Linear(64, num_actions)
         )
 
-        
-    def _init_weights(self):
-        for layers in self.model:
-            if isinstance(layers, nn.Linear):
-                nn.init.kaiming_uniform_(layers.weight)
-                nn.init.zeros_(layers.bias)
 
     def forward(self, state):
         features = self.feature(state)
