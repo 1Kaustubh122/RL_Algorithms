@@ -41,7 +41,8 @@ class PriortizedReplayBuffer:
         self.memory = []
         self.priorities = np.zeros((capacity,), dtype=np.float32)
         self.pos = 0
-        
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+
     def push(self, state, action, reward, next_state, done):
         max_prior = self.priorities.max() if self.memory else 1.0
         
@@ -52,4 +53,42 @@ class PriortizedReplayBuffer:
 
         self.priorities[self.pos] = max_prior
         self.pos = (self.pos + 1) % self.capacity
+    
+    def sample(self, batch_size):
+        
+        if len(self.memory) == self.capacity:
+            priorties = self.priorities
+        else:
+            priorties = self.priorities[:self.pos]
+
+        probs = (priorties + self.epsilon) ** self.alpha
+        probs /= probs.sum()
+
+        indices = np.random.choice(len(self.memory), batch_size, p=probs)
+        
+        samples = [self.memory[i] for i in indices]
+        states, actions, rewards, next_states, dones = zip(*samples)
+                
+        
+        states = torch.stack(states).to(device=self.device)
+        actions = torch.tensor(actions, dtype=torch.long, device=self.device)
+        rewards = torch.tensor(rewards, dtype=torch.float32, device=self.device)
+        next_states = torch.stack(next_states).to(device=self.device)
+        dones = torch.tensor(dones, dtype=torch.float32, device=self.device)
+        
+        total = len(self.memory)
+        weights = (total *probs[indices]) ** (-self.beta)
+        weights /= weights.max()
+        self.beta = min(1.0, self.beta + self.beta_increment)
+        
+        weights = torch.tensor(weights, dtype=torch.float32, device=self.device)
+
+        return states, actions, rewards, next_states, dones, weights, indices
+    
+    def update_priorities(self,indicies, new_prior):
+        for idx, prior in zip(indicies, new_prior):
+            self.priorities[idx] = prior
+
+    def __len__(self):
+        return len(self.memory)
         
