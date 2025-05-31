@@ -1,5 +1,10 @@
+import os
+import sys
 import torch.nn as nn
-    
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from networks.Noisylinear import NoisyLinear
+
 class QNetwork(nn.Module):
     def __init__(self, obs_shape, num_actions):
         super(QNetwork, self).__init__()
@@ -54,3 +59,39 @@ class DuelingQNetwork(nn.Module):
         return q_values
 
             
+
+class RainbowQNetwork(nn.Module):
+    def __init__(self, obs_shape, num_actions):
+        super().__init__()
+        self.feature = nn.Sequential(
+            nn.Linear(obs_shape, 128),
+            nn.ReLU(),
+        )
+
+        self.value_stream = nn.Sequential(
+            NoisyLinear(128, 64),
+            nn.ReLU(),
+            nn.Linear(64, 1)
+        )
+
+        self.advantage_stream = nn.Sequential(
+            NoisyLinear(128, 64),
+            nn.ReLU(),
+            nn.Linear(64, num_actions)
+        )
+
+
+    def forward(self, state):
+        features = self.feature(state)
+        value = self.value_stream(features)
+        advantage = self.advantage_stream(features)
+
+        q_values = value + (advantage - advantage.mean(dim=1, keepdim=True))
+        
+        return q_values
+    
+    
+    def reset_noise(self):
+        for module in self.modules():
+            if isinstance(module, NoisyLinear):
+                module.reset_noise()
