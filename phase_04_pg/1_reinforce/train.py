@@ -78,7 +78,7 @@ def train(render : bool):
             # state = torch.from_numpy(obs).float().unsqueeze(0)
 
             
-            action, log_prob, _ = policy.get_action(state_tensor)
+            action, log_prob, _, _ = policy.get_action(state_tensor)
             ## Gym
             # obs, reward, done, truncated, _ = env.step(action.item())
 
