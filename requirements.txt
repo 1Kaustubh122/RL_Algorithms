@@ -23,3 +23,4 @@ tqdm==4.67.1
 pytz==2025.2
 torch==2.6.0+cu124
 gymnasium==1.1.1
+gymnasium[classic-control]

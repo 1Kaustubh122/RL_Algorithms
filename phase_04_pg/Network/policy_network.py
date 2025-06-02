@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 class PolicyNetwork(nn.Module):
-    def __init__(self, obs_dim, action_dim, is_continous):
+    def __init__(self, obs_dim: int, action_dim: int, is_continous: bool):
         super().__init__()
         self.obs_dim = obs_dim
         self.action_dim = action_dim
@@ -29,6 +29,15 @@ class PolicyNetwork(nn.Module):
         else:
             self.logits_layer = nn.Linear(64, action_dim)
         
+    def get_action(self, state: torch.tensor):
+        dist = self.forward(state)
+        action = dist.sample()
+        log_prob = dist.log_prob(action)
+
+        if self.is_continous:
+            log_prob = log_prob.sum(dim=-1)
+        
+        return action, log_prob, dist
     
     def forward(self, state):
         x = self.shared(state)
@@ -40,5 +49,3 @@ class PolicyNetwork(nn.Module):
         else:
             logits = self.logits_layer(x)
             return torch.distributions.Categorical(logits=logits)
-            
-
