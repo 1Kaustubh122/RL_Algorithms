@@ -33,11 +33,13 @@ class PolicyNetwork(nn.Module):
         dist = self.forward(state)
         action = dist.sample()
         log_prob = dist.log_prob(action)
-
+        entropy = dist.entropy()
+        
         if self.is_continous:
             log_prob = log_prob.sum(dim=-1)
-        
-        return action, log_prob, dist
+            entropy = entropy.sum(dim=-1)
+            
+        return action, log_prob, dist, entropy
     
     def forward(self, state):
         x = self.shared(state)
@@ -49,3 +51,20 @@ class PolicyNetwork(nn.Module):
         else:
             logits = self.logits_layer(x)
             return torch.distributions.Categorical(logits=logits)
+
+
+class ValueNetwork(nn.Module):
+    def __init__(self, obs_dim):
+        super().__init__()
+        self.model = nn.Sequential(
+            nn.Linear(obs_dim, 64),
+            nn.ReLU(),
+            nn.LayerNorm(64),
+            nn.Linear(64, 128),
+            nn.ReLU(),
+            nn.LayerNorm(128),
+            nn.Linear(128, 1)
+        )
+    
+    def forward(self, x):
+        return self.model(x).squeeze(-1)
