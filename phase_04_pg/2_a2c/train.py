@@ -13,8 +13,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from Network.policy_network import PolicyNetwork, ValueNetwork
 
-NUM_EPISODE = 1000
-MAX_LEN = 350
+NUM_EPISODE = 3000
+MAX_LEN = 400
 
 def compute_returns(rewards, gamma=0.99):
     returns = []
@@ -53,7 +53,7 @@ def train(render: bool):
     
     policy = PolicyNetwork(obs_dim, action_dim, is_continous=is_continous)
     value_net = ValueNetwork(obs_dim)
-    optim = torch.optim.Adam(list(policy.parameters()) + list(value_net.parameters()), lr=1e-3)
+    optim = torch.optim.Adam(list(policy.parameters()) + list(value_net.parameters()), lr=1e-2)
     # optim = torch.optim.Adam(policy.parameters(), lr=1e-3)
     scheduler = torch.optim.lr_scheduler.StepLR(optim, step_size=100, gamma=0.9)
 
@@ -126,17 +126,17 @@ def train(render: bool):
             
             
             ## DM
+            if eps > 2200:
+                rgb_frame = env.physics.render(height=84, width=130, camera_id=0)
+                bgr_frame = cv2.cvtColor(rgb_frame, cv2.COLOR_RGB2BGR)
+                scale_factor = 4
+                bgr_frame = cv2.resize(
+                    bgr_frame, 
+                    (bgr_frame.shape[1] * scale_factor, bgr_frame.shape[0] * scale_factor), 
+                    interpolation=cv2.INTER_LINEAR
+                )
+                frames.append(rgb_frame) 
             
-            rgb_frame = env.physics.render(height=84, width=130, camera_id=0)
-            bgr_frame = cv2.cvtColor(rgb_frame, cv2.COLOR_RGB2BGR)
-            scale_factor = 4
-            bgr_frame = cv2.resize(
-                bgr_frame, 
-                (bgr_frame.shape[1] * scale_factor, bgr_frame.shape[0] * scale_factor), 
-                interpolation=cv2.INTER_LINEAR
-            )
-            frames.append(rgb_frame) 
-        
        
             # if episode_reward >= best_reward:
             # if render:
@@ -161,7 +161,7 @@ def train(render: bool):
         advantages = compute_advantages(returns, values.detach())
         advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
         
-        if episode_reward > best_reward:
+        if episode_reward > best_reward and eps > 2210:
             best_reward = episode_reward
             best_frames = frames.copy()
         if eps == NUM_EPISODE - 1 and best_frames is not None:
